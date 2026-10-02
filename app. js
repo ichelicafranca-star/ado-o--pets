@@ -1,0 +1,179 @@
+// Os dados dos pets ficam na memória durante a sessão.
+const pets = [];
+
+const app = document.querySelector("#app");
+const botoesMenu = document.querySelectorAll("nav button");
+
+function marcarMenuAtivo(rota) {
+  botoesMenu.forEach(botao => {
+    botao.classList.toggle("ativo", botao.dataset.rota === rota);
+  });
+}
+
+function irPara(rota) {
+  marcarMenuAtivo(rota);
+
+  if (rota === "inicio") mostrarInicio();
+  if (rota === "cadastro") mostrarCadastro();
+  if (rota === "lista") mostrarLista();
+  if (rota === "sobre") mostrarSobre();
+}
+
+function mostrarInicio() {
+  app.innerHTML = `
+    <h1>Sistema de Adoção de Animais</h1>
+    <p>
+      Bem-vindo ao nosso portal de adoção! Este sistema ajuda a gerenciar 
+      o cadastro de pets que estão procurando um novo lar.
+    </p>
+
+    <p>
+      A navegação funciona como uma SPA (Single Page Application), 
+      atualizando o conteúdo sem recarregar a página.
+    </p>
+
+    <div class="contador">
+      Pets cadastrados para adoção nesta sessão: <strong>${pets.length}</strong>
+    </div>
+
+    <div class="acoes">
+      <button class="botao" id="btnCadastrar">Cadastrar Pet</button>
+      <button class="botao secundario" id="btnVerPets">Ver Pets</button>
+    </div>
+  `;
+
+  document.querySelector("#btnCadastrar")
+    .addEventListener("click", () => irPara("cadastro"));
+
+  document.querySelector("#btnVerPets")
+    .addEventListener("click", () => irPara("lista"));
+}
+
+function mostrarCadastro() {
+  app.innerHTML = `
+    <h1>Cadastrar Pet</h1>
+
+    <form id="formPet">
+      <div class="campo">
+        <label for="nome">Nome do Pet</label>
+        <input id="nome" type="text" placeholder="Ex: Bob, Mel..." required />
+      </div>
+
+      <div class="campo">
+        <label for="especie">Espécie</label>
+        <input id="especie" type="text" placeholder="Ex: Cachorro, Gato..." required />
+      </div>
+
+      <div class="campo">
+        <label for="idade">Idade (anos)</label>
+        <input id="idade" type="text" placeholder="Ex: 2 anos ou 6 meses" required />
+      </div>
+
+      <button class="botao" type="submit">Salvar Pet</button>
+      <div id="mensagem"></div>
+    </form>
+  `;
+
+  document.querySelector("#formPet").addEventListener("submit", function(evento) {
+    evento.preventDefault();
+
+    const nome = document.querySelector("#nome").value.trim();
+    const especie = document.querySelector("#especie").value.trim();
+    const idade = document.querySelector("#idade").value.trim();
+
+    pets.push({
+      nome,
+      especie,
+      idade
+    });
+
+    document.querySelector("#mensagem").innerHTML =
+      `<div class="mensagem">Pet cadastrado com sucesso para adoção!</div>`;
+
+    evento.target.reset();
+  });
+}
+
+function mostrarLista() {
+  app.innerHTML = `
+    <h1>Pets para Adoção</h1>
+    <p>Lista de animais disponíveis cadastrados no sistema.</p>
+    <div id="conteudoLista"></div>
+  `;
+
+  renderizarTabela();
+}
+
+function renderizarTabela() {
+  const conteudo = document.querySelector("#conteudoLista");
+
+  if (pets.length === 0) {
+    conteudo.innerHTML = `
+      <div class="vazio">
+        Nenhum pet cadastrado para adoção ainda.
+      </div>
+    `;
+    return;
+  }
+
+  let linhas = "";
+
+  pets.forEach((pet, indice) => {
+    linhas += `
+      <tr>
+        <td>${pet.nome}</td>
+        <td>${pet.especie}</td>
+        <td>${pet.idade}</td>
+        <td>
+          <button class="excluir" data-indice="${indice}">Excluir</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  conteudo.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Espécie</th>
+          <th>Idade</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${linhas}
+      </tbody>
+    </table>
+  `;
+
+  document.querySelectorAll(".excluir").forEach(botao => {
+    botao.addEventListener("click", function() {
+      const indice = Number(this.dataset.indice);
+      pets.splice(indice, 1);
+      renderizarTabela();
+    });
+  });
+}
+
+function mostrarSobre() {
+  app.innerHTML = `
+    <h1>Sobre o Projeto de Adoção</h1>
+    <p>
+      Este aplicativo foi desenvolvido para conectar animais abandonados 
+      ou resgatados a novas famílias de forma rápida e dinâmica.
+    </p>
+    <p>
+      Utiliza conceitos modernos de SPA em JavaScript puro, modularizado 
+      em pastas separadas para HTML, CSS e JS.
+    </p>
+  `;
+}
+
+botoesMenu.forEach(botao => {
+  botao.addEventListener("click", () => {
+    irPara(botao.dataset.rota);
+  });
+});
+
+mostrarInicio();
